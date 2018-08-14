@@ -9,7 +9,7 @@ services:
         - composer --no-ansi global require drush/drush:8.1.17
         - ln -sf ~/.composer/vendor/bin/drush /usr/local/bin/drush
         
-        - mkdir ~/.drush/commands
+        - mkdir -p ~/.drush/commands
         - cd ~/.drush/commands
         - wget https://github.com/backdrop-contrib/drush/archive/1.x-0.x.zip
         - unzip 1.x-0.x.zip -d backdrop
