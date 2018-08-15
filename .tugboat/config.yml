@@ -19,6 +19,10 @@ services:
         - ln -snf "${TUGBOAT_ROOT}/backdrop" "${DOCROOT}"
         
         - drush si --db-url="mysql://tugboat:tugboat@mysql/tugboat" -y 
+        
+        - mkdir -p "${DOCROOT}/sites/default/files"
+        - chown www-data "${DOCROOT}/sites/default/files"
+        - chmod 770 "${DOCROOT}/sites/default/files"
     
   mysql:
     image: tugboatqa/mysql:5
