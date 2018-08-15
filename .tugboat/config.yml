@@ -24,7 +24,7 @@ services:
         - chown www-data "${DOCROOT}/sites/default/files"
         - chmod 770 "${DOCROOT}/sites/default/files"
               
-       build:
+      build:
         - drush -r "${DOCROOT}" cache-clear all
         - drush -r "${DOCROOT}" updb -y
     
