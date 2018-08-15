@@ -13,6 +13,9 @@ services:
         - cd ~/.drush/commands
         - wget https://github.com/backdrop-contrib/drush/archive/1.x-0.x.zip
         - unzip 1.x-0.x.zip -d backdrop
+        
+        - mkdir "${TUGBOAT_ROOT}/web"
+        - ln -snf "${TUGBOAT_ROOT}/web" "${DOCROOT}"
     
   mysql:
     image: tugboatqa/mysql:5
