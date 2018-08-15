@@ -10,8 +10,8 @@ services:
         - ln -sf ~/.composer/vendor/bin/drush /usr/local/bin/drush
         
         - mkdir -p ~/.drush/commands/ 
-        - wget -O ~/.drush/commands/1.x-0.x.zip https://github.com/backdrop-contrib/drush/archive/1.x-0.x.zip
-        - unzip 1.x-0.x.zip -d backdrop
+        - cd ~/.drush/commands/ && wget https://github.com/backdrop-contrib/drush/archive/1.x-0.x.zip
+        - cd ~/.drush/commands/ && unzip 1.x-0.x.zip -d backdrop
         
         - drush dlb backdrop
         - ln -snf "${TUGBOAT_ROOT}/backdrop" "${DOCROOT}"
