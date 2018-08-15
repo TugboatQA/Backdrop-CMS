@@ -20,9 +20,9 @@ services:
         
         - drush -r "${DOCROOT}" si --db-url="mysql://tugboat:tugboat@mysql/tugboat" --account-pass="${ADMIN_PWD}" -y 
         
-        - mkdir -p "${DOCROOT}/sites/default/files"
-        - chown www-data "${DOCROOT}/sites/default/files"
-        - chmod 744 "${DOCROOT}/sites/default/files"
+        - mkdir -p "${DOCROOT}/files"
+        - chown www-data "${DOCROOT}/files"
+        - chmod 744 "${DOCROOT}/files"
               
       build:
         - drush -r "${DOCROOT}" cache-clear all
