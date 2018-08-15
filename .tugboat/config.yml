@@ -6,7 +6,7 @@ services:
     
     commands:
       init:    
-        - composer --no-ansi global require drush/drush:8.1.17
+        - composer --no-ansi global require drush/drush:8.x
         - ln -sf ~/.composer/vendor/bin/drush /usr/local/bin/drush
         
         - mkdir -p ~/.drush/commands
