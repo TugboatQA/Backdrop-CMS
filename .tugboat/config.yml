@@ -16,7 +16,7 @@ services:
         - drush dlb backdrop
         - ln -snf "${TUGBOAT_ROOT}/backdrop" "${DOCROOT}"
         
-        - drush -r "${DOCROOT}" si --db-url="mysql://tugboat:tugboat@mysql/tugboat" -y 
+        - drush -r "${DOCROOT}" si --db-url="mysql://tugboat:tugboat@mysql/tugboat" --account-pass="${ADMIN_PWD}" -y 
         
         - mkdir -p "${DOCROOT}/sites/default/files"
         - chown www-data "${DOCROOT}/sites/default/files"
