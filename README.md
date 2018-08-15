@@ -1,6 +1,6 @@
 # Tugboat Template for Backdrop
 
-This is a [configuration file](https://github.com/TugboatQA/Backdrop-CMS/blob/master/.tugboat/config.yml) for spinning up a new Backdrop site in Tugboat. It uses Drush to download the latest version of Backdrop and spin up a clean LAMP stack. 
+This is a [configuration file](https://github.com/TugboatQA/Backdrop-CMS/blob/master/.tugboat/config.yml) for spinning up a new [Backdrop site](https://backdropcms.org) in Tugboat. It uses Drush to download the latest version of Backdrop and spin up a clean LAMP stack. 
 
 Tugboat is free to use. It comes in handy to automatically build out a fully working version of the site for every pull request, branch or tag. The full tutorial will soon be [over here](https://tugboat.qa/). 
 
