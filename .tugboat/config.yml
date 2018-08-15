@@ -15,10 +15,11 @@ services:
         - cd ~/.drush/commands/ && wget https://github.com/backdrop-contrib/drush/archive/1.x-0.x.zip
         - cd ~/.drush/commands/ && unzip 1.x-0.x.zip -d backdrop
         
-        - drush dlb backdrop
+        - drush download-backdrop backdrop
         - ln -snf "${TUGBOAT_ROOT}/backdrop" "${DOCROOT}"
         
-        - drush -r "${DOCROOT}" si --db-url="mysql://tugboat:tugboat@mysql/tugboat" --account-pass="${ADMIN_PWD}" -y 
+        - drush -r "${DOCROOT}" site-install --db-url="mysql://tugboat:tugboat@mysql/tugboat" -y
+        - drush user-password admin --password="${ADMIN_PWD}"
         
         - mkdir -p "${DOCROOT}/files"
         - chown www-data "${DOCROOT}/files"
@@ -26,7 +27,7 @@ services:
               
       build:
         - drush -r "${DOCROOT}" cache-clear all
-        - drush -r "${DOCROOT}" updb -y
+        - drush -r "${DOCROOT}" updatedb -y
     
   mysql:
     image: tugboatqa/mysql:5
