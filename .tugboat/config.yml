@@ -17,6 +17,8 @@ services:
         
         - drush dlb backdrop
         - ln -snf "${TUGBOAT_ROOT}/backdrop" "${DOCROOT}"
+        
+        - drush si --db-url="mysql://tugboat:tugboat@mysql/tugboat" -y 
     
   mysql:
     image: tugboatqa/mysql:5
