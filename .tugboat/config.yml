@@ -55,6 +55,14 @@ services:
       build:
         - drush -r "${DOCROOT}" cache-clear all
         - drush -r "${DOCROOT}" updatedb -y
+        
+        # Warm the cache
+        - wget -e robots=off \
+            --quiet \
+            --page-requisites \
+            --delete-after \
+            --header "Host: tugboat.qa" \
+            http://127.0.0.1 || /bin/true
   
   # What to call the service hosting MySQL. This name also acts as the
   # hostname to access the service by from the php service.
