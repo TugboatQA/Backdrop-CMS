@@ -52,7 +52,7 @@ services:
       # base preview, the build workflow starts here, skipping the init
       # and update steps, because the results of those are inherited
       # from the base preview.
-      build:
+      build: | 
         - drush -r "${DOCROOT}" cache-clear all
         - drush -r "${DOCROOT}" updatedb -y
         
