@@ -20,6 +20,8 @@ services:
     
       # The `init` commands sets up the basic preview infrastructure
       init:
+        - apt-get update
+        - apt-get install -y jq
         - a2enmod headers rewrite
         
         # Install Drush 8.x
@@ -56,7 +58,7 @@ services:
         - drush -r "${DOCROOT}" cache-clear all
         - drush -r "${DOCROOT}" updatedb -y
         # Tenon Integration
-        - curl -d "url=${TUGBOAT_PREVIEW_URL}&key=${TENON_API}" -H Content-Type:application/x-www-form-urlencoded -H Cache-Control:no-cache -X POST https://tenon.io/api/
+        - curl -d "url=${TUGBOAT_PREVIEW_URL}&key=${TENON_API}" -H Content-Type:application/x-www-form-urlencoded -H Cache-Control:no-cache -X POST https://tenon.io/api/  | jq '.'
   
   # What to call the service hosting MySQL. This name also acts as the
   # hostname to access the service by from the php service.
