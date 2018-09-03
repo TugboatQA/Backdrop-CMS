@@ -53,6 +53,12 @@ services:
         - mkdir -p "${DOCROOT}/files"
         - chown www-data "${DOCROOT}/files"
         - chmod 744 "${DOCROOT}/files"
+     
+      # Called when a new preview is created from scratch: init, update, build. 
+      # Also called when a preview is refreshed: update, then build. 
+      # update is not called when a preview is created from a base preview: build
+      update:
+        - lighthouse http://localhost --chrome-flags="--no-sandbox --headless --disable-gpu" --output json
       
       # Commands that build the site. When a preview is built from a
       # base preview, the build workflow starts here, skipping the init
