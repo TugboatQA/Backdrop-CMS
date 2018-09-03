@@ -25,7 +25,7 @@ services:
         # Install Node and Google Lighthouse
         - apt-get update
         - curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-        - sudo apt-get install -y nodejs
+        - sudo apt-get install -y nodejs chromium
         - npm install -g lighthouse
         
         # Install Drush 8.x
