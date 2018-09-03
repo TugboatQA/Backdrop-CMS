@@ -22,6 +22,12 @@ services:
       init:
         - a2enmod headers rewrite
         
+        # Install Node and Google Lighthouse
+        - apt-get update
+        - curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+        - sudo apt-get install -y nodejs
+        - npm install -g lighthouse
+        
         # Install Drush 8.x
         - composer --no-ansi global require drush/drush:8.x
         - ln -sf ~/.composer/vendor/bin/drush /usr/local/bin/drush
