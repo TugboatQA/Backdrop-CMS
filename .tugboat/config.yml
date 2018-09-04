@@ -2,7 +2,7 @@ services:
 
   # What to call the service hosting the site.
   php:
-  
+    filename: &fn "${TUGBOAT_PREVIEW_ID}-$(date \"+%Y%m%d-%H%M%S\").json"
     # Use the latest PHP 7.x with Apache
     image: tugboatqa/php:7-apache
     
@@ -58,7 +58,6 @@ services:
       # Also called when a preview is refreshed: update, then build. 
       # update is not called when a preview is created from a base preview: build
       update:
-        filename: &fn "${TUGBOAT_PREVIEW_ID}-$(date \"+%Y%m%d-%H%M%S\").json"
         - touch "${TUGBOAT_ROOT}/*fn"
         - lighthouse http://localhost --chrome-flags="--no-sandbox --headless --disable-gpu" --output json --output-path "${TUGBOAT_ROOT}/*fn"
         # curl -u ${$TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} -H "Content-Type: application/json" -X POST -d '{"description": "${TUGBOAT_PREVIEW_URL}","public": false,"files": {"*fn": {"content": "Paste your XML code.."}}}' 'https://api.github.com/gists'
