@@ -27,6 +27,7 @@ services:
         - curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
         - sudo apt-get install -y nodejs chromium
         - npm install -g lighthouse gists
+        - npm install --save gists
         
         # Install Drush 8.x
         - composer --no-ansi global require drush/drush:8.x
