@@ -59,7 +59,7 @@ services:
       update:
         - touch "${TUGBOAT_ROOT}/${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").json"
         - lighthouse http://localhost --chrome-flags="--no-sandbox --headless --disable-gpu" --output json --output-path "${TUGBOAT_ROOT}/${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").json"
-        - "curl -u ${$TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} -H 'Content-Type: application/json' -X POST -d '{'description': \"Tugboat:${TUGBOAT_REPO}\n${TUGBOAT_PREVIEW_URL}\", 'public': false, 'files': {'${TUGBOAT_PREVIEW_ID}-$(date '+%Y%m%d').json': {'content': '$(cat '${TUGBOAT_PREVIEW_ID}-$(date '+%Y%m%d').json')'} } }' https://api.github.com/gists"
+        - "curl -u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} -H 'Content-Type: application/json' -X POST -d '{'description': \"Tugboat:${TUGBOAT_REPO}\n${TUGBOAT_PREVIEW_URL}\", 'public': false, 'files': {'${TUGBOAT_PREVIEW_ID}-$(date '+%Y%m%d').json': {'content': '$(cat '${TUGBOAT_PREVIEW_ID}-$(date '+%Y%m%d').json')'} } }' https://api.github.com/gists"
       
       # Commands that build the site. When a preview is built from a
       # base preview, the build workflow starts here, skipping the init
