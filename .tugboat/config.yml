@@ -1,4 +1,4 @@
-filename: &fn "${TUGBOAT_PREVIEW_ID}-$(date \"+%Y%m%d-%H:%M:%S\").json"
+filename: &fn "${TUGBOAT_PREVIEW_ID}-$(date '+%Y%m%d-%H:%M:%S').json"
 services:
 
   # What to call the service hosting the site.
