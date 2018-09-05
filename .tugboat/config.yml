@@ -79,8 +79,6 @@ services:
         curl -sS -X POST -H 'Content-Type: application/json' \
           \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
           \-d "{ \"description\": \"Tugboat: ${TUGBOAT_REPO} - Preview: ${TUGBOAT_PREVIEW_URL} - Lighthouse: https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\" }" "https://api.github.com/gists/${GID}" > updated.gist
-          
-        echo "View the Lighthouse report at: https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}"
   
   # What to call the service hosting MySQL. This name also acts as the
   # hostname to access the service by from the php service.
