@@ -58,7 +58,8 @@ services:
       # update is not called when a preview is created from a base preview: build
       update:
         - touch "${TUGBOAT_ROOT}/${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").json"
-        - lighthouse http://localhost --chrome-flags="--no-sandbox --headless --disable-gpu" --output json --output-path "${TUGBOAT_ROOT}/${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").json"
+        - lighthouse ${TUGBOAT_PREVIEW_URL} --chrome-flags="--no-sandbox --headless --disable-gpu" --output json --output-path "${TUGBOAT_ROOT}/${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").json"
+        - cat ${TUGBOAT_ROOT}/${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").json | jq -r "{ description: \"Tugboat:${TUGBOAT_REPO} - ${TUGBOAT_PREVIEW_URL}\", public: \"false\", files: {\"${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").lighthouse.report.json\": {content: (. | tostring) }}}" > ${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").gist
         # "curl -u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} -H 'Content-Type: application/json' -X POST -d '{'description': \"Tugboat:${TUGBOAT_REPO}\n${TUGBOAT_PREVIEW_URL}\", 'public': false, 'files': {'${TUGBOAT_PREVIEW_ID}-$(date '+%Y%m%d').json': {'content': '$(cat ${TUGBOAT_ROOT}/${TUGBOAT_PREVIEW_ID}-$(date +%Y%m%d).json | sed 's/\"/\\\"/g' | paste -s -d '\\n' -)'} } }' https://api.github.com/gists"
       
       # Commands that build the site. When a preview is built from a
