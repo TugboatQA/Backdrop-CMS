@@ -56,23 +56,21 @@ services:
       # Called when a new preview is created from scratch: init, update, build. 
       # Also called when a preview is refreshed: update, then build. 
       # update is not called when a preview is created from a base preview: build
-      update: | 
+      update:
+        - drush -r "${DOCROOT}" cache-clear all
+        - drush -r "${DOCROOT}" updatedb -y
+
+      # Commands that build the site. When a preview is built from a
+      # base preview, the build workflow starts here, skipping the init
+      # and update steps, because the results of those are inherited
+      # from the base preview.
+      build: | 
         lighthouse ${TUGBOAT_PREVIEW_URL} --chrome-flags="--no-sandbox --headless" \
           \--output json \
           | jq -r "{ description: \"Tugboat:${TUGBOAT_REPO} - ${TUGBOAT_PREVIEW_URL}\", public: \"false\", files: {\"${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").lighthouse.report.json\": {content: (. | tostring) }}}" \
           | curl -sS -X POST -H 'Content-Type: application/json' \
             \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
             \-d @- https://api.github.com/gists > results.json
-
-
-
-      # Commands that build the site. When a preview is built from a
-      # base preview, the build workflow starts here, skipping the init
-      # and update steps, because the results of those are inherited
-      # from the base preview.
-      build:
-        - drush -r "${DOCROOT}" cache-clear all
-        - drush -r "${DOCROOT}" updatedb -y
   
   # What to call the service hosting MySQL. This name also acts as the
   # hostname to access the service by from the php service.
