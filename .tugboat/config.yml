@@ -65,12 +65,20 @@ services:
       # and update steps, because the results of those are inherited
       # from the base preview.
       build: | 
+        # Run lighthouse as JSON, pipe it to jq to wrangle and send it to GitHub Gist via curl 
+        # so Lighthouse Viewer can grab it. 
         lighthouse ${TUGBOAT_PREVIEW_URL} --chrome-flags="--no-sandbox --headless" \
           \--output json \
           | jq -r "{ description: \"Tugboat:${TUGBOAT_REPO} - ${TUGBOAT_PREVIEW_URL}\", public: \"false\", files: {\"${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").lighthouse.report.json\": {content: (. | tostring) }}}" \
           | curl -sS -X POST -H 'Content-Type: application/json' \
             \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
-            \-d @- https://api.github.com/gists > results.json
+            \-d @- https://api.github.com/gists > results.gist
+        
+        # Let's be nice and add the Lighthouse Viewer link in the Gist description.
+        GID=$(cat results.json | jq -r '.id')
+        curl -sS -X POST -H 'Content-Type: application/json' \
+          \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
+          \-d "{ \"description\": \"Tugboat: ${TUGBOAT_REPO} - Preview: ${TUGBOAT_PREVIEW_URL} - Lighthouse: https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\" }" "https://api.github.com/gists/${GID}" > updated.gist
   
   # What to call the service hosting MySQL. This name also acts as the
   # hostname to access the service by from the php service.
