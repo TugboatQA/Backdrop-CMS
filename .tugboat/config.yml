@@ -57,8 +57,8 @@ services:
       # Also called when a preview is refreshed: update, then build. 
       # update is not called when a preview is created from a base preview: build
       update: | 
-        - touch "${TUGBOAT_ROOT}/${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").json"
-        - lighthouse ${TUGBOAT_PREVIEW_URL} --chrome-flags="--no-sandbox --headless" \
+        touch "${TUGBOAT_ROOT}/${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").json"
+        lighthouse ${TUGBOAT_PREVIEW_URL} --chrome-flags="--no-sandbox --headless" \
             --output json --output-path "${TUGBOAT_ROOT}/${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").json"
         # I don't have the YAML friendly syntax figured out for these commands yet. 
         # - cat ${TUGBOAT_ROOT}/${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").json | jq -r "{ description: \"Tugboat:${TUGBOAT_REPO} - ${TUGBOAT_PREVIEW_URL}\", public: \"false\", files: {\"${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").lighthouse.report.json\": {content: (. | tostring) }}}" > ${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").gist
