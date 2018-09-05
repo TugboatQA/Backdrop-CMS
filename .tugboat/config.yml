@@ -67,7 +67,7 @@ services:
       build: | 
         # Run lighthouse as JSON, pipe it to jq to wrangle and send it to GitHub Gist via curl 
         # so Lighthouse Viewer can grab it. 
-        lighthouse ${TUGBOAT_PREVIEW_URL} --chrome-flags="--no-sandbox --headless" \
+        lighthouse http://localhost --chrome-flags="--no-sandbox --headless" \
           \--output json \
           | jq -r "{ description: \"Tugboat:${TUGBOAT_REPO} - ${TUGBOAT_PREVIEW_URL}\", public: \"false\", files: {\"${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").lighthouse.report.json\": {content: (. | tostring) }}}" \
           | curl -sS -X POST -H 'Content-Type: application/json' \
