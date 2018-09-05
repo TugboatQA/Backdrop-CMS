@@ -75,7 +75,7 @@ services:
             \-d @- https://api.github.com/gists > results.gist
         
         # Let's be nice and add the Lighthouse Viewer link in the Gist description.
-        GID=$(cat results.json | jq -r '.id')
+        GID=$(cat results.gist | jq -r '.id')
         curl -sS -X POST -H 'Content-Type: application/json' \
           \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
           \-d "{ \"description\": \"Tugboat: ${TUGBOAT_REPO} - Preview: ${TUGBOAT_PREVIEW_URL} - Lighthouse: https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\" }" "https://api.github.com/gists/${GID}" > updated.gist
