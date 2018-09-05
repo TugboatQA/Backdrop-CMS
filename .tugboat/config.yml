@@ -58,11 +58,11 @@ services:
       # update is not called when a preview is created from a base preview: build
       update: | 
         lighthouse ${TUGBOAT_PREVIEW_URL} --chrome-flags="--no-sandbox --headless" \
-          --output json \ 
-          | jq -r "{ description: \"Tugboat:${TUGBOAT_REPO} - ${TUGBOAT_PREVIEW_URL}\", public: \"false\", files: {\"${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").lighthouse.report.json\": {content: (. | tostring) }}}" \
-          | curl -sS -X POST -H 'Content-Type: application/json' \
-            -u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
-            --d @- https://api.github.com/gists > results.json
+        --output json \ 
+        | jq -r "{ description: \"Tugboat:${TUGBOAT_REPO} - ${TUGBOAT_PREVIEW_URL}\", public: \"false\", files: {\"${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").lighthouse.report.json\": {content: (. | tostring) }}}" \
+        | curl -sS -X POST -H 'Content-Type: application/json' \
+          -u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
+          --d @- https://api.github.com/gists > results.json
 
       # Commands that build the site. When a preview is built from a
       # base preview, the build workflow starts here, skipping the init
