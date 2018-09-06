@@ -66,7 +66,7 @@ services:
       # from the base preview.
       build: | 
         if [[ -v TUGBOAT_GITHUB_HEAD ]]; then \
-          curl -sS -X GET -H 'Content-Type: application/json' \
+        \ curl -sS -X GET -H 'Content-Type: application/json' \
             \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
             "https://api.github.com/repos/${TUGBOAT_GITHUB_OWNER}/${TUGBOAT_GITHUB_REPO}/statuses/${TUGBOAT_GITHUB_HEAD}" > status.json
           STATUS_URL=$(cat status.json | jq -r '.[0] | .url') \
