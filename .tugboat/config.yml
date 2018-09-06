@@ -103,8 +103,8 @@ services:
         # Leave a comment posting Lighthouse scores for quick reference
         PR=$(echo ${TUGBOAT_PREVIEW} | sed 's/pr//')
         curl -sS -X POST -H 'Content-Type: application/json' \
-          \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \"{ \"body\": \"Lighthouse Report: $(cat score.json | jq -r '. | "- \(.category): \(.score)"' | sed -z 's/\n/\\n/g')\" }"
-          \-d  "https://api.github.com/repos/${TUGBOAT_GITHUB_OWNER}/${TUGBOAT_GITHUB_REPO}/issues/${PR}/comments" > comment.json
+          \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
+          \-d "{ \"body\": \"Lighthouse Report: $(cat score.json | jq -r '. | "- \(.category): \(.score)"' | sed -z 's/\n/\\n/g')\" }"  "https://api.github.com/repos/${TUGBOAT_GITHUB_OWNER}/${TUGBOAT_GITHUB_REPO}/issues/${PR}/comments" > comment.json
           
         # Set the Pull Request status to 'Success'
         curl -sS -X POST -H 'Content-Type: application/json' \
