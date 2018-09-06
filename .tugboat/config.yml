@@ -83,7 +83,11 @@ services:
         # so Lighthouse Viewer can grab it. 
         lighthouse http://localhost --chrome-flags="--no-sandbox --headless" \
           \--output json > audit.json 
-          
+        
+        # Get the Lighthouse category scores.
+        cat audit.json | jq '.categories | .[] | {category: .title, score: (.score * 100)}' > score.json
+        
+        # Send up a Gist
         cat audit.json | jq -r "{ description: \"Tugboat:${TUGBOAT_REPO} - ${TUGBOAT_PREVIEW_URL}\", public: \"false\", files: {\"${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").lighthouse.report.json\": {content: (. | tostring) }}}" \
           | curl -sS -X POST -H 'Content-Type: application/json' \
             \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
@@ -94,6 +98,13 @@ services:
         curl -sS -X POST -H 'Content-Type: application/json' \
           \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
           \-d "{ \"description\": \"Tugboat: ${TUGBOAT_REPO} - Preview: ${TUGBOAT_PREVIEW_URL} - Lighthouse: https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\" }" "https://api.github.com/gists/${GID}" > updated.gist
+        
+        if [[ -v TUGBOAT_GITHUB_HEAD ]]; then  
+        # Set the Pull Request status to 'Success'
+        curl -sS -X POST -H 'Content-Type: application/json' \
+          \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
+          \-d "{ \"state\": \"success\", \"target_url\": \"https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\", \"description\": \"Your Lighthouse report is complete.\", \"context\": \"Tugboat.qa\" }" ${STATUS_URL}          
+        fi
   
   # What to call the service hosting MySQL. This name also acts as the
   # hostname to access the service by from the php service.
