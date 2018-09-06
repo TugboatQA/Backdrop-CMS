@@ -65,11 +65,11 @@ services:
       # and update steps, because the results of those are inherited
       # from the base preview.
       build: | 
-        if [[ -v TUGBOAT_GITHUB_HEAD ]]; then \
+        if [[ -v TUGBOAT_GITHUB_HEAD ]]; then 
         curl -sS -X GET -H 'Content-Type: application/json' \
             \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
-            "https://api.github.com/repos/${TUGBOAT_GITHUB_OWNER}/${TUGBOAT_GITHUB_REPO}/statuses/${TUGBOAT_GITHUB_HEAD}" > status.json \
-          STATUS_URL=$(cat status.json | jq -r '.[0] | .url'); \
+            "https://api.github.com/repos/${TUGBOAT_GITHUB_OWNER}/${TUGBOAT_GITHUB_REPO}/statuses/${TUGBOAT_GITHUB_HEAD}" > status.json
+          STATUS_URL=$(cat status.json | jq -r '.[0] | .url');
         fi
         
         # Run lighthouse as JSON, pipe it to jq to wrangle and send it to GitHub Gist via curl 
