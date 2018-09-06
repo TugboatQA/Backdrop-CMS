@@ -72,17 +72,19 @@ services:
           
         STATUS_URL=$(cat status.json | jq -r '.[0] | .url');
           
-        # Pending
+        # Set the Pull Request status to 'Pending'
         curl -sS -X POST -H 'Content-Type: application/json' \
           \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
           \-d "{ \"state\": \"pending\", \"target_url\": \"${TUGBOAT_PREVIEW_URL}\", \"description\": \"Building lighthouse report.\", \"context\": \"Tugboat.qa\" }" ${STATUS_URL}
+          
         fi
         
         # Run lighthouse as JSON, pipe it to jq to wrangle and send it to GitHub Gist via curl 
         # so Lighthouse Viewer can grab it. 
         lighthouse http://localhost --chrome-flags="--no-sandbox --headless" \
-          \--output json \
-          | jq -r "{ description: \"Tugboat:${TUGBOAT_REPO} - ${TUGBOAT_PREVIEW_URL}\", public: \"false\", files: {\"${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").lighthouse.report.json\": {content: (. | tostring) }}}" \
+          \--output json > audit.json 
+          
+        cat audit.json | jq -r "{ description: \"Tugboat:${TUGBOAT_REPO} - ${TUGBOAT_PREVIEW_URL}\", public: \"false\", files: {\"${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").lighthouse.report.json\": {content: (. | tostring) }}}" \
           | curl -sS -X POST -H 'Content-Type: application/json' \
             \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
             \-d @- https://api.github.com/gists > results.gist
