@@ -135,7 +135,7 @@ services:
         # Print the link to the report in stdout.
         echo -e "\n*************************************************************\n \
         Your Lighthouse report is complete and can be accessed here:\n \
-        https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\n \
+        https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\n\
         *************************************************************\n" || /bin/true
 
 
