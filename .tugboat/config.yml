@@ -100,7 +100,7 @@ services:
         
         # Run lighthouse as JSON, pipe it to jq to wrangle and send it to GitHub Gist via curl 
         # so Lighthouse Viewer can grab it. 
-        lighthouse http://localhost --chrome-flags="--no-sandbox --headless" \
+        lighthouse http://localhost --quiet --chrome-flags="--no-sandbox --headless" \
           \--output json > audit.json
         
         # Get the Lighthouse category scores.
@@ -131,6 +131,12 @@ services:
             \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
             \-d "{ \"state\": \"success\", \"target_url\": \"https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\", \"description\": \"Your Lighthouse report is complete.\", \"context\": \"Tugboat.qa\" }" ${STATUS_URL} > /dev/null
         fi
+        
+        # Print the link to the report in stdout.
+        echo -e "\n*************************************************************\n \
+        Your Lighthouse report is complete and can be accessed here:\n \
+        https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\n \
+        *************************************************************\n" || /bin/true
 
 
 
