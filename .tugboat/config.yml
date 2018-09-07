@@ -1,6 +1,8 @@
 services:
 
-  # What to call the service hosting the site.
+  # What to call the default hosting service. This name also acts as the 
+  # hostname to access this service by from other services defined in this 
+  # config.
   php:
     # Use the latest PHP 7.x with Apache
     image: tugboatqa/php:7-apache
@@ -15,6 +17,7 @@ services:
     depends: mysql
     
     # A set of commands to run while building this service
+    # See https://docs.tugboat.qa/configuring-tugboat/#commands for details.
     commands:
     
       # The `init` command is called from two different actions:
@@ -77,6 +80,7 @@ services:
       # have run. In this instance, Tugboat will only run the `build` commands 
       # within your services in real time. Base Previews drastically reduce 
       # preview build times and the amount of space a preview occupies on disk.
+      # See https://docs.tugboat.qa/concepts/base-previews/ for reference.
       build: |
     
         # Test for a pull request. 
@@ -86,19 +90,18 @@ services:
             \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
             "https://api.github.com/repos/${TUGBOAT_GITHUB_OWNER}/${TUGBOAT_GITHUB_REPO}/statuses/${TUGBOAT_GITHUB_HEAD}" > status.json
                       
-        STATUS_URL=$(cat status.json | jq -r '.[0] | .url');
+          STATUS_URL=$(cat status.json | jq -r '.[0] | .url');
           
-        # Set the Pull Request status to 'Pending'
-        curl -sS -X POST -H 'Content-Type: application/json' \
-          \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
-          \-d "{ \"state\": \"pending\", \"target_url\": \"${TUGBOAT_PREVIEW_URL}\", \"description\": \"Building lighthouse report.\", \"context\": \"Tugboat.qa\" }" ${STATUS_URL} > /dev/null
-          
+          # Set the Pull Request status to 'Pending'
+          curl -sS -X POST -H 'Content-Type: application/json' \
+            \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
+            \-d "{ \"state\": \"pending\", \"target_url\": \"${TUGBOAT_PREVIEW_URL}\", \"description\": \"Building lighthouse report.\", \"context\": \"Tugboat.qa\" }" ${STATUS_URL} > /dev/null
         fi
         
         # Run lighthouse as JSON, pipe it to jq to wrangle and send it to GitHub Gist via curl 
         # so Lighthouse Viewer can grab it. 
         lighthouse http://localhost --chrome-flags="--no-sandbox --headless" \
-          \--output json > audit.json 
+          \--output json > audit.json
         
         # Get the Lighthouse category scores.
         cat audit.json | jq '.categories | .[] | {category: .title, score: (.score * 100)}' > score.json
@@ -115,21 +118,23 @@ services:
           \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
           \-d "{ \"description\": \"Tugboat: ${TUGBOAT_REPO} - Preview: ${TUGBOAT_PREVIEW_URL} - Lighthouse: https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\" }" "https://api.github.com/gists/${GID}" > updated.gist
         
+        # Check for a pull request again.
         if [[ -v TUGBOAT_GITHUB_HEAD ]]; then  
-        # Leave a comment posting Lighthouse scores for quick reference
-        PR=$(echo ${TUGBOAT_PREVIEW} | sed 's/pr//')
-        curl -sS -X POST -H 'Content-Type: application/json' \
-          \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
-          \-d "{ \"body\": \"Lighthouse Report:\n $(cat score.json | jq -r '. | "- \(.category): \(.score)"' | sed -z 's/\n/\\n/g')\nhttps://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\" }"  "https://api.github.com/repos/${TUGBOAT_GITHUB_OWNER}/${TUGBOAT_GITHUB_REPO}/issues/${PR}/comments" > comment.json
+          # Leave a comment, posting Lighthouse scores for quick reference
+          PR=$(echo ${TUGBOAT_PREVIEW} | sed 's/pr//')
+          curl -sS -X POST -H 'Content-Type: application/json' \
+            \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
+            \-d "{ \"body\": \"Lighthouse Report:\n $(cat score.json | jq -r '. | "- \(.category): \(.score)"' | sed -z 's/\n/\\n/g')\nhttps://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\" }"  "https://api.github.com/repos/${TUGBOAT_GITHUB_OWNER}/${TUGBOAT_GITHUB_REPO}/issues/${PR}/comments" > comment.json
           
-        # Set the Pull Request status to 'Success'
-        curl -sS -X POST -H 'Content-Type: application/json' \
-          \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
-          \-d "{ \"state\": \"success\", \"target_url\": \"https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\", \"description\": \"Your Lighthouse report is complete.\", \"context\": \"Tugboat.qa\" }" ${STATUS_URL} > /dev/null
+          # Set the Pull Request status to 'Success'
+          curl -sS -X POST -H 'Content-Type: application/json' \
+            \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
+            \-d "{ \"state\": \"success\", \"target_url\": \"https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\", \"description\": \"Your Lighthouse report is complete.\", \"context\": \"Tugboat.qa\" }" ${STATUS_URL} > /dev/null
         fi
-  
-  # What to call the service hosting MySQL. This name also acts as the
-  # hostname to access the service by from the php service.
+
+
+
+  # What to name the service hosting MySQL.
   mysql:
   
     # Use the latest available 5.x version of MySQL
