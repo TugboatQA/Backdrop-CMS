@@ -82,7 +82,9 @@ services:
       # preview build times and the amount of space a preview occupies on disk.
       # See https://docs.tugboat.qa/concepts/base-previews/ for reference.
       build: |
-    
+        # Warm the cache
+        "wget -e robots=off --quiet --page-requisites --delete-after --header \"Host: tugboat.qa\" http://localhost || /bin/true"
+        
         # Test for a pull request. 
         if [[ -v TUGBOAT_GITHUB_HEAD ]]; then 
           # Grab the status url from GitHub
