@@ -1,14 +1,15 @@
 services:
 
-  # What to call the service hosting the site.
+  # What to call the default hosting service. This name also acts as the 
+  # hostname to access this service by from other services defined in this 
+  # config.
   php:
-  
     # Use the latest PHP 7.x with Apache
     image: tugboatqa/php:7-apache
     
-    # Set this as the default service. This does a few things
-    #   1. Clones the git repository into the service container
-    #   2. Exposes port 80 to the Tugboat HTTP proxy
+    # Set this as the default service. This does a few things:
+    #   1. Clones the git repository into the service container //checkout: true
+    #   2. Exposes port 80 to the Tugboat HTTP proxy //expose: 80
     #   3. Routes requests to the preview URL to this service
     default: true
     
@@ -16,12 +17,24 @@ services:
     depends: mysql
     
     # A set of commands to run while building this service
+    # See https://docs.tugboat.qa/configuring-tugboat/#commands for details.
     commands:
     
-      # The `init` commands sets up the basic preview infrastructure
+      # The `init` command is called from two different actions:
+      #   1. When a preview is first created: `init`, then `update`, then `build`
+      #   2. When a preview is rebuilt: `init`, then `update`, then `build`
+      # The `init` command is not called when a preview is cloned or 
+      # refreshed.   
       init:
+        # Enable mode_rewrite
         - a2enmod headers rewrite
         - docker-php-ext-install opcache
+        
+        # Install Node, Google Lighthouse, and jq
+        - apt-get update
+        - curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+        - sudo apt-get install -y nodejs chromium jq
+        - npm install -g lighthouse
         
         # Install Drush 8.x
         - composer --no-ansi global require drush/drush:8.x
@@ -36,29 +49,102 @@ services:
         - drush download-backdrop backdrop
         - ln -snf "${TUGBOAT_ROOT}/backdrop" "${DOCROOT}"
         
-        # Install Backdrop and the database. Change the admin password. 
-        # The variable ${ADMIN_PWD} is an environment variables coming 
-        # from Tugboat on the Repository Settings page. You must set 
-        # this up ahead of time. See the screenshot in this repos to know 
-        # what it looks like. 
+        # Install Backdrop and the database. A default admin password is 
+        # is printed to the stdout, so we'll set a private admin password.
+        # The variable ${ADMIN_PWD} was created from the Tugboat UI, on the 
+        # Repository Settings page. You must set this up ahead of time. See 
+        # the screenshot in this repos for details. 
         - drush -r "${DOCROOT}" site-install --db-url="mysql://tugboat:tugboat@mysql/tugboat" -y
         - drush -r "${DOCROOT}" user-password admin --password="${ADMIN_PWD}"
         
-        # Setup the necessary file permissions. 
+        # Setup necessary file permissions. 
         - mkdir -p "${DOCROOT}/files"
         - chown www-data "${DOCROOT}/files"
         - chmod 744 "${DOCROOT}/files"
-      
-      # Commands that build the site. When a preview is built from a
-      # base preview, the build workflow starts here, skipping the init
-      # and update steps, because the results of those are inherited
-      # from the base preview.
-      build:
+     
+      # The `update` command is called from two different actions:
+      #   1. When a preview is first created: `init`, then `update`, then `build`
+      #   2. When a preview is refreshed: `update`, then `build`
+      # `update` is not called when a preview is created from a base preview:
+      #   only the `build` command is called (see below)
+      update:
         - drush -r "${DOCROOT}" cache-clear all
         - drush -r "${DOCROOT}" updatedb -y
-  
-  # What to call the service hosting MySQL. This name also acts as the
-  # hostname to access the service by from the php service.
+
+      # The `build` command is called from three different actions:
+      #   1. When a preview is first created: `init`, then `update`, then `build`
+      #   2. When a preview is created from a base preview: `build`
+      #   3. When a preview is refreshed: `update`, then `build`
+      # Base Previews provide Tugboat with a starting point, from where it can 
+      # build new previews. When a preview is marked as a base preview, 
+      # Tugboat preserves the build just after the `init` and `update` steps
+      # have run. In this instance, Tugboat will only run the `build` commands 
+      # within your services in real time. Base Previews drastically reduce 
+      # preview build times and the amount of space a preview occupies on disk.
+      # See https://docs.tugboat.qa/concepts/base-previews/ for reference.
+      build: |
+        # Warm the cache
+        "wget -e robots=off --quiet --page-requisites --delete-after --header \"Host: tugboat.qa\" http://localhost || /bin/true"
+        
+        # Test for a pull request. 
+        if [[ -v TUGBOAT_GITHUB_HEAD ]]; then 
+          # Grab the status url from GitHub
+          curl -sSL -X GET -H 'Content-Type: application/json' \
+            \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
+            "https://api.github.com/repos/${TUGBOAT_GITHUB_OWNER}/${TUGBOAT_GITHUB_REPO}/statuses/${TUGBOAT_GITHUB_HEAD}" > status.json
+                      
+          STATUS_URL=$(cat status.json | jq -r '.[0] | .url');
+          
+          # Set the Pull Request status to 'Pending'
+          curl -sSL -X POST -H 'Content-Type: application/json' \
+            \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
+            \-d "{ \"state\": \"pending\", \"target_url\": \"${TUGBOAT_PREVIEW_URL}\", \"description\": \"Building lighthouse report.\", \"context\": \"Tugboat.qa\" }" ${STATUS_URL} > /dev/null
+        fi
+        
+        # Run lighthouse as JSON, pipe it to jq to wrangle and send it to GitHub Gist via curl 
+        # so Lighthouse Viewer can grab it. 
+        export CHROME_PATH="/usr/bin/chromium"
+        lighthouse http://localhost --quiet --chrome-flags="--no-sandbox --headless" \
+          \--output json > audit.json
+        
+        # Get the Lighthouse category scores.
+        cat audit.json | jq '.categories | .[] | {category: .title, score: (.score * 100)}' > score.json
+        
+        # Send up a Gist
+        cat audit.json | jq -r "{ description: \"Tugboat:${TUGBOAT_REPO} - ${TUGBOAT_PREVIEW_URL}\", public: \"false\", files: {\"${TUGBOAT_PREVIEW_ID}-$(date "+%Y%m%d").lighthouse.report.json\": {content: (. | tostring) }}}" \
+          | curl -sSL -X POST -H 'Content-Type: application/json' \
+            \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
+            \-d @- https://api.github.com/gists > results.gist
+        
+        # Let's be nice and add the Lighthouse Viewer link in the Gist description.
+        GID=$(cat results.gist | jq -r '.id')
+        curl -sSL -X POST -H 'Content-Type: application/json' \
+          \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
+          \-d "{ \"description\": \"Tugboat: ${TUGBOAT_REPO} - Preview: ${TUGBOAT_PREVIEW_URL} - Lighthouse: https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\" }" "https://api.github.com/gists/${GID}" > updated.gist
+        
+        # Check for a pull request again.
+        if [[ -v TUGBOAT_GITHUB_HEAD ]]; then  
+          # Leave a comment, posting Lighthouse scores for quick reference
+          PR=$(echo ${TUGBOAT_PREVIEW} | sed 's/pr//')
+          curl -sSL -X POST -H 'Content-Type: application/json' \
+            \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
+            \-d "{ \"body\": \"Lighthouse Report:\n $(cat score.json | jq -r '. | "- \(.category): \(.score)"' | sed -z 's/\n/\\n/g')\nhttps://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\" }"  "https://api.github.com/repos/${TUGBOAT_GITHUB_OWNER}/${TUGBOAT_GITHUB_REPO}/issues/${PR}/comments" > comment.json
+          
+          # Set the Pull Request status to 'Success'
+          curl -sSL -X POST -H 'Content-Type: application/json' \
+            \-u ${TUGBOAT_GITHUB_OWNER}:${GITHUB_TOKEN} \
+            \-d "{ \"state\": \"success\", \"target_url\": \"https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\", \"description\": \"Your Lighthouse report is complete.\", \"context\": \"Tugboat.qa\" }" ${STATUS_URL} > /dev/null
+        fi
+        
+        # Print the link to the report in stdout.
+        echo -e "\n*************************************************************\n \
+        Your Lighthouse report is complete and can be accessed here:\n \
+        https://googlechrome.github.io/lighthouse/viewer/?gist=${GID}\n\
+        *************************************************************\n" || /bin/true
+
+
+
+  # What to name the service hosting MySQL.
   mysql:
   
     # Use the latest available 5.x version of MySQL
