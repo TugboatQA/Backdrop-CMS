@@ -103,6 +103,7 @@ services:
         
         # Run lighthouse as JSON, pipe it to jq to wrangle and send it to GitHub Gist via curl 
         # so Lighthouse Viewer can grab it. 
+        export CHROME_PATH="/usr/bin/chromium"
         lighthouse http://localhost --quiet --chrome-flags="--no-sandbox --headless" \
           \--output json > audit.json
         
