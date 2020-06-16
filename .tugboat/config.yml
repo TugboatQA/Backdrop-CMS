@@ -29,8 +29,8 @@ services:
         
         # Install Backdrop-specific Drush commands
         - mkdir -p ~/.drush/commands/ 
-        - cd ~/.drush/commands/ && wget https://github.com/backdrop-contrib/drush/archive/1.x-0.x.zip
-        - cd ~/.drush/commands/ && unzip 1.x-0.x.zip -d backdrop
+        - cd ~/.drush/commands/ && wget https://github.com/backdrop-contrib/drush/archive/1.x-1.x.zip
+        - cd ~/.drush/commands/ && unzip 1.x-1.x.zip -d backdrop
         
         # Download Backdrop and link the docroot. 
         - drush download-backdrop backdrop
